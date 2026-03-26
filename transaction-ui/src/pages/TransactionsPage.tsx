@@ -47,6 +47,8 @@ function TransactionsPage() {
             .catch(err => console.error('Failed to load categories', err));
     }, []);
 
+    const partnerIdsParam = searchParams.get('partnerIds') ?? '';
+
     useEffect(() => {
         setErrorState(undefined);
         const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
@@ -63,7 +65,7 @@ function TransactionsPage() {
                 setSelectedIds(new Set()); // clear selection on page/filter change
             })
             .catch(err => setErrorState(err.message));
-    }, [page, selectedPartnerIds, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [page, partnerIdsParam, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePageChange(p: number): void {
         setPage(p);

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import { Node } from '../components/Categories';
 import { PartnerDetailDto } from '../ApiModel';
-
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 function PartnersPage() {
     const navigate = useNavigate();

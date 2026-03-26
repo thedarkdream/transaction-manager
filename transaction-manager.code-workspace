@@ -1,0 +1,42 @@
+{
+    "folders": [
+        {
+            "name": "transaction-api",
+            "path": "transaction-api"
+        },
+        {
+            "name": "transaction-ui",
+            "path": "transaction-ui"
+        }
+    ],
+    "settings": {
+        "typescript.tsdk": "transaction-ui/node_modules/typescript/lib",
+        "chat.tools.terminal.autoApprove": {
+            "npx tsc": true
+        }
+    },
+    "launch": {
+        "version": "0.2.0",
+        "compounds": [
+            {
+                "name": "Debug API + UI",
+                "configurations": [
+                    {
+                        "name": "Debug API",
+                        "folder": "transaction-api"
+                    },
+                    {
+                        "name": "Debug UI",
+                        "folder": "transaction-ui"
+                    }
+                ],
+                "stopAll": true,
+                "presentation": {
+                    "hidden": false,
+                    "group": "compound",
+                    "order": 1
+                }
+            }
+        ]
+    }
+}

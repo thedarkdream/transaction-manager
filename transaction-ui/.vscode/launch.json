@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Debug UI",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": "UI: Start Dev Server",
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${workspaceFolder}/src/*",
+                "webpack:///./*": "${workspaceFolder}/*",
+                "webpack:///./src/*": "${workspaceFolder}/src/*"
+            },
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ]
+        }
+    ]
+}

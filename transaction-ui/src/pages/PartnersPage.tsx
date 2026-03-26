@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryPickerModal from '../components/CategoryPickerModal';
+import CategoryFilterPopup, { CategoryFilterId } from '../components/CategoryFilterPopup';
 import { Node } from '../components/Categories';
 import { PartnerDetailDto } from '../ApiModel';
 import { API_BASE } from '../config';
@@ -14,6 +15,8 @@ function PartnersPage() {
     const [search, setSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+    const [filterCatIds, setFilterCatIds] = useState<CategoryFilterId[]>([]);
+    const [catFilterAnchor, setCatFilterAnchor] = useState<DOMRect | null>(null);
 
     useEffect(() => {
         Promise.all([
@@ -29,13 +32,22 @@ function PartnersPage() {
     }, []);
 
     const filtered = useMemo(() => {
-        if (!search.trim()) return partners;
-        const q = search.toLowerCase();
-        return partners.filter(p =>
-            (p.name ?? '').toLowerCase().includes(q) ||
-            (p.iban ?? '').toLowerCase().includes(q)
-        );
-    }, [partners, search]);
+        let result = partners;
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            result = result.filter(p =>
+                (p.name ?? '').toLowerCase().includes(q) ||
+                (p.iban ?? '').toLowerCase().includes(q)
+            );
+        }
+        if (filterCatIds.length > 0) {
+            const catSet = new Set(filterCatIds);
+            result = result.filter(p =>
+                p.category ? catSet.has(p.category.id) : catSet.has(null)
+            );
+        }
+        return result;
+    }, [partners, search, filterCatIds]);
 
     // --- Selection ---
     const allFilteredSelected = filtered.length > 0 && filtered.every(p => selectedIds.has(p.id));
@@ -112,8 +124,17 @@ function PartnersPage() {
                 />
                 <span className="partners-count">
                     {filtered.length} partner{filtered.length !== 1 ? 's' : ''}
-                    {search && partners.length !== filtered.length ? ` (of ${partners.length})` : ''}
+                    {(search || filterCatIds.length > 0) && partners.length !== filtered.length ? ` (of ${partners.length})` : ''}
                 </span>
+                <button
+                    className={`btn btn-ghost pfp-trigger-btn${filterCatIds.length > 0 ? ' pfp-trigger-btn--active' : ''}`}
+                    onClick={e => {
+                        const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                        setCatFilterAnchor(prev => prev ? null : rect);
+                    }}
+                >
+                    Category{filterCatIds.length > 0 ? ` (${filterCatIds.length})` : ''}
+                </button>
                 <div className="partners-actions">
                     {selectionCount > 0 && (
                         <span className="partners-selection-label">{selectionCount} selected</span>
@@ -210,6 +231,16 @@ function PartnersPage() {
                     title={`Assign category to ${selectionCount} partner${selectionCount !== 1 ? 's' : ''}`}
                     onSelect={handleAssign}
                     onClose={() => setShowCategoryPicker(false)}
+                />
+            )}
+
+            {catFilterAnchor && (
+                <CategoryFilterPopup
+                    anchorRect={catFilterAnchor}
+                    categories={categories}
+                    selected={filterCatIds}
+                    onApply={ids => { setFilterCatIds(ids); setCatFilterAnchor(null); }}
+                    onClose={() => setCatFilterAnchor(null)}
                 />
             )}
         </div>

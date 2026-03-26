@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import fetchTransactions, { assignTransactionCategory, backfillTransactionCategories } from './services/transactionService';
+import fetchTransactions, { assignTransactionCategory, backfillTransactionCategories, fetchMonthlyTotals } from './services/transactionService';
 import { fetchCategories, addCategory, updateCategory, moveCategory, deleteCategory } from './services/categoryService';
 import { bcrImportUpload, bcrImportHandler } from './endpoints/bcrImportEndpoint';
 import fetchPartners, { fetchAllPartners, assignCategory } from './services/partnerService';
@@ -11,6 +11,7 @@ app.use(express.json());
 
 const port = 5000;
 
+app.get('/transactions/monthly-totals', fetchMonthlyTotals);
 app.get('/transactions', fetchTransactions);
 app.post('/transactions/assign-category', assignTransactionCategory);
 app.post('/transactions/backfill-categories', backfillTransactionCategories);

@@ -2,6 +2,8 @@ import { RequestHandler } from 'express';
 import { prisma } from '../db';
 import {
     AssignTransactionCategoryBody,
+    MonthlyTotalDto,
+    MonthlyTotalsQueryParams,
     PagedResult,
     TransactionDto,
     TransactionQueryParams
@@ -110,3 +112,45 @@ export const backfillTransactionCategories: RequestHandler<{}, { updated: number
 };
 
 export default fetchTransactions;
+
+// GET /transactions/monthly-totals
+// Returns outgoing (negative) transactions aggregated by month + category_id.
+export const fetchMonthlyTotals: RequestHandler<
+    {},
+    MonthlyTotalDto[],
+    {},
+    MonthlyTotalsQueryParams
+> = async (req, res) => {
+    const fromDate = new Date(req.query.date_from || '1970-01-01');
+    const toDate = new Date(req.query.date_to || new Date().toISOString());
+
+    type RawRow = { month: string; category_id: number | null; total: unknown };
+
+    try {
+        const rows = await prisma.$queryRaw<RawRow[]>`
+            SELECT
+                TO_CHAR(DATE_TRUNC('month', booking_date), 'YYYY-MM') AS month,
+                category_id,
+                CAST(SUM(ABS(amount)) AS FLOAT8) AS total
+            FROM transactions
+            WHERE amount < 0
+              AND booking_date IS NOT NULL
+              AND booking_date >= ${fromDate}
+              AND booking_date <= ${toDate}
+            GROUP BY 1, 2
+            ORDER BY 1
+        `;
+
+        const data: MonthlyTotalDto[] = rows.map(r => ({
+            month: r.month,
+            categoryId: r.category_id,
+            total: Number(r.total),
+        }));
+
+        res.send(data);
+    } catch (err: unknown) {
+        const error = err as Error;
+        console.error('Error fetching monthly totals', error);
+        res.status(500).send(error.message as any);
+    }
+};

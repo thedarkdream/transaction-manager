@@ -4,6 +4,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import ImportPage from './pages/ImportPage';
 import PartnersPage from './pages/PartnersPage';
+import SpendingGraphPage from './pages/SpendingGraphPage';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Link to="/categories">Categories</Link>
           <Link to="/partners">Partners</Link>
           <Link to="/import">Import</Link>
+          <Link to="/graph">Graph</Link>
         </nav>
         <Routes>
           <Route path="/" element={<Navigate to="/transactions" replace />} />
@@ -24,6 +26,7 @@ function App() {
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/import" element={<ImportPage />} />
+          <Route path="/graph" element={<SpendingGraphPage />} />
         </Routes>
       </BrowserRouter>
     </div>

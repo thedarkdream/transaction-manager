@@ -6,6 +6,17 @@ export interface TransactionQueryParams {
     partnerIds?: string;  // comma-separated partner IDs
 }
 
+export interface MonthlyTotalsQueryParams {
+    date_from?: string;
+    date_to?: string;
+}
+
+export interface MonthlyTotalDto {
+    month: string;         // 'YYYY-MM'
+    categoryId: number | null;
+    total: number;
+}
+
 export interface PagedResult<T> {
     data: T[];
     total: number;

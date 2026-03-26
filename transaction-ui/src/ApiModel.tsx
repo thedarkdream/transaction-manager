@@ -69,6 +69,12 @@ export type PagedResult<T> = {
     pageSize: number;
 }
 
+export type MonthlyTotalDto = {
+    month: string;          // 'YYYY-MM'
+    categoryId: number | null;
+    total: number;
+}
+
 export type CategoryDto = {
     id: number;
     name: string;

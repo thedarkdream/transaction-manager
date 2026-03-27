@@ -8,6 +8,9 @@ interface TransactionProps {
     dateFrom?: string;
     dateTo?: string;
     onOpenDateFilter?: (anchor: DOMRect) => void;
+    amountMin?: string;
+    amountMax?: string;
+    onOpenAmountFilter?: (anchor: DOMRect) => void;
     selectedIds?: Set<number>;
     onToggle?: (id: number) => void;
     onToggleAll?: () => void;
@@ -21,9 +24,10 @@ function FilterIcon() {
     );
 }
 
-function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, dateFrom, dateTo, onOpenDateFilter, selectedIds, onToggle, onToggleAll }: TransactionProps) {
+function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, dateFrom, dateTo, onOpenDateFilter, amountMin, amountMax, onOpenAmountFilter, selectedIds, onToggle, onToggleAll }: TransactionProps) {
     const filterBtnRef = useRef<HTMLButtonElement>(null);
     const dateFilterBtnRef = useRef<HTMLButtonElement>(null);
+    const amountFilterBtnRef = useRef<HTMLButtonElement>(null);
     const selectable = !!onToggle;
 
     function handleFilterClick() {
@@ -35,6 +39,12 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
     function handleDateFilterClick() {
         if (dateFilterBtnRef.current && onOpenDateFilter) {
             onOpenDateFilter(dateFilterBtnRef.current.getBoundingClientRect());
+        }
+    }
+
+    function handleAmountFilterClick() {
+        if (amountFilterBtnRef.current && onOpenAmountFilter) {
+            onOpenAmountFilter(amountFilterBtnRef.current.getBoundingClientRect());
         }
     }
 
@@ -79,7 +89,21 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                             )}
                         </div>
                     </th>
-                    <th>Amount</th>
+                    <th>
+                        <div className="th-filter">
+                            Amount
+                            {onOpenAmountFilter && (
+                                <button
+                                    ref={amountFilterBtnRef}
+                                    className={`btn-th-filter${(amountMin || amountMax) ? ' btn-th-filter-active' : ''}`}
+                                    onClick={handleAmountFilterClick}
+                                    title="Filter by amount"
+                                >
+                                    <FilterIcon />
+                                </button>
+                            )}
+                        </div>
+                    </th>
                     <th>Description</th>
                     <th>
                         <div className="th-filter">

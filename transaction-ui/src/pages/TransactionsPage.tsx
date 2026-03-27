@@ -4,6 +4,7 @@ import Transactions from '../components/Transactions';
 import Pagination from '../components/Pagination';
 import PartnerFilterPopup from '../components/PartnerFilterPopup';
 import DateFilterPopup from '../components/DateFilterPopup';
+import AmountFilterPopup from '../components/AmountFilterPopup';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import { Node } from '../components/Categories';
 import { PagedResult, PartnerPickerDto, TransactionDto } from '../ApiModel';
@@ -23,6 +24,7 @@ function TransactionsPage() {
     const [categories, setCategories] = useState<Node[]>([]);
     const [partnerFilterAnchor, setPartnerFilterAnchor] = useState<DOMRect | null>(null);
     const [dateFilterAnchor, setDateFilterAnchor] = useState<DOMRect | null>(null);
+    const [amountFilterAnchor, setAmountFilterAnchor] = useState<DOMRect | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
@@ -35,6 +37,10 @@ function TransactionsPage() {
     // Date filter is stored in the URL as ?dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD
     const dateFrom = searchParams.get('dateFrom') ?? '';
     const dateTo = searchParams.get('dateTo') ?? '';
+
+    // Amount filter is stored in the URL as ?amountMin=...&amountMax=...
+    const amountMin = searchParams.get('amountMin') ?? '';
+    const amountMax = searchParams.get('amountMax') ?? '';
 
     useEffect(() => {
         fetch(`${API_BASE}/partners`)
@@ -57,6 +63,8 @@ function TransactionsPage() {
         }
         if (dateFrom) params.set('date_from', dateFrom);
         if (dateTo) params.set('date_to', dateTo);
+        if (amountMin) params.set('amount_min', amountMin);
+        if (amountMax) params.set('amount_max', amountMax);
         fetch(`${API_BASE}/transactions?${params}`)
             .then(r => r.json())
             .then((result: PagedResult<TransactionDto>) => {
@@ -65,7 +73,7 @@ function TransactionsPage() {
                 setSelectedIds(new Set()); // clear selection on page/filter change
             })
             .catch(err => setErrorState(err.message));
-    }, [page, partnerIdsParam, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [page, partnerIdsParam, dateFrom, dateTo, amountMin, amountMax]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePageChange(p: number): void {
         setPage(p);
@@ -87,6 +95,14 @@ function TransactionsPage() {
         const next = new URLSearchParams(searchParams);
         if (from) next.set('dateFrom', from); else next.delete('dateFrom');
         if (to) next.set('dateTo', to); else next.delete('dateTo');
+        setSearchParams(next, { replace: true });
+        setPage(1);
+    }
+
+    function handleAmountFilterApply(min: string, max: string): void {
+        const next = new URLSearchParams(searchParams);
+        if (min) next.set('amountMin', min); else next.delete('amountMin');
+        if (max) next.set('amountMax', max); else next.delete('amountMax');
         setSearchParams(next, { replace: true });
         setPage(1);
     }
@@ -194,6 +210,9 @@ function TransactionsPage() {
                         dateFrom={dateFrom}
                         dateTo={dateTo}
                         onOpenDateFilter={setDateFilterAnchor}
+                        amountMin={amountMin}
+                        amountMax={amountMax}
+                        onOpenAmountFilter={setAmountFilterAnchor}
                         selectedIds={selectedIds}
                         onToggle={toggleRow}
                         onToggleAll={toggleAll}
@@ -222,6 +241,15 @@ function TransactionsPage() {
                     dateTo={dateTo}
                     onApply={handleDateFilterApply}
                     onClose={() => setDateFilterAnchor(null)}
+                />
+            )}
+            {amountFilterAnchor !== null && (
+                <AmountFilterPopup
+                    anchorRect={amountFilterAnchor}
+                    amountMin={amountMin}
+                    amountMax={amountMax}
+                    onApply={handleAmountFilterApply}
+                    onClose={() => setAmountFilterAnchor(null)}
                 />
             )}
             {showCategoryPicker && (

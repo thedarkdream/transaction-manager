@@ -24,9 +24,18 @@ const fetchTransactions: RequestHandler<
         ? req.query.partnerIds.split(',').map(s => parseInt(s, 10)).filter(n => !isNaN(n))
         : null;
 
+    const amount_min = req.query.amount_min !== undefined && req.query.amount_min !== '' ? parseFloat(req.query.amount_min) : null;
+    const amount_max = req.query.amount_max !== undefined && req.query.amount_max !== '' ? parseFloat(req.query.amount_max) : null;
+
     const where = {
         booking_date: { gte: date_from, lte: date_to },
-        ...(partnerIds && partnerIds.length > 0 ? { partner_id: { in: partnerIds } } : {})
+        ...(partnerIds && partnerIds.length > 0 ? { partner_id: { in: partnerIds } } : {}),
+        ...((amount_min !== null || amount_max !== null) ? {
+            amount: {
+                ...(amount_min !== null ? { gte: amount_min } : {}),
+                ...(amount_max !== null ? { lte: amount_max } : {})
+            }
+        } : {})
     };
 
     try {

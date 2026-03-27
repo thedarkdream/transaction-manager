@@ -1,6 +1,8 @@
 export interface TransactionQueryParams {
     date_from?: string;
     date_to?: string;
+    amount_min?: string;
+    amount_max?: string;
     page?: string;
     pageSize?: string;
     partnerIds?: string;  // comma-separated partner IDs

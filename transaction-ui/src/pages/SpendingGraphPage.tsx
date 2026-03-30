@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { CategoryDto, MonthlyTotalDto } from '../ApiModel';
@@ -86,6 +87,10 @@ function slotKey(s: Slot): string { return `${s.id}-${s.directOnly ? 'd' : 'n'}`
 // ---------------------------------------------------------------------------
 
 function SpendingGraphPage() {
+    const navigate = useNavigate();
+    const allMonthsRef = useRef<string[]>([]);
+    const navigateRef = useRef(navigate);
+    useEffect(() => { navigateRef.current = navigate; }, [navigate]);
     const [dateFrom, setDateFrom] = useState<string>(defaultFrom);
     const [dateTo, setDateTo] = useState<string>(defaultTo);
 
@@ -198,6 +203,9 @@ function SpendingGraphPage() {
 
     const allMonths = useMemo(() => generateMonths(fetchedFrom, fetchedTo), [fetchedFrom, fetchedTo]);
 
+    // Keep ref in sync so chart event handler never closes over a stale array
+    useEffect(() => { allMonthsRef.current = allMonths; }, [allMonths]);
+
     const focusedDescIds = useMemo(() => {
         if (focusedId === null) return null;
         const node = findNode(categories, focusedId);
@@ -249,8 +257,20 @@ function SpendingGraphPage() {
         chart: {
             type: 'line',
             toolbar: { show: true },
-            zoom: { enabled: true },
+            zoom: { enabled: false },
             animations: { enabled: false },
+            events: {
+                markerClick(_event, _chartCtx, config) {
+                    if (!config) return;
+                    const month: string | undefined = allMonthsRef.current[config.dataPointIndex];
+                    if (!month) return;
+                    const params = new URLSearchParams({
+                        dateFrom: monthToDateFrom(month),
+                        dateTo: monthToDateTo(month),
+                    });
+                    navigateRef.current(`/transactions?${params}`);
+                },
+            },
         },
         stroke: {
             width: visibleSlots.map(s => s.directOnly ? 1 : 2),
@@ -271,7 +291,7 @@ function SpendingGraphPage() {
             y: { formatter: (val: number) => val.toFixed(2) },
         },
         legend: { show: false },
-        markers: { size: 4 },
+        markers: { size: 4, hover: { size: 7 }, cursor: 'pointer' },
         grid: { borderColor: '#e2e8f0' },
     }), [allMonths, slotColors, visibleSlots]);
 

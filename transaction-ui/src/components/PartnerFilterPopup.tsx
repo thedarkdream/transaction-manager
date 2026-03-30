@@ -57,7 +57,7 @@ function PartnerFilterPopup({ anchorRect, partners, selectedIds, onApply, onClos
     return (
         <div
             ref={popupRef}
-            className="partner-filter-popup"
+            className="filter-popup partner-filter-popup"
             style={{ position: 'fixed', left, top, width: POPUP_WIDTH }}
         >
             <div className="pfp-header">

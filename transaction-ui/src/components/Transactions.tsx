@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { TransactionDto } from '../ApiModel';
+import { TransactionDto, TransactionSortBy, SortDir } from '../ApiModel';
 
 interface TransactionProps {
     entries?: Array<TransactionDto>;
@@ -14,6 +14,9 @@ interface TransactionProps {
     selectedIds?: Set<number>;
     onToggle?: (id: number) => void;
     onToggleAll?: () => void;
+    sortBy?: TransactionSortBy;
+    sortDir?: SortDir;
+    onSort?: (col: TransactionSortBy) => void;
 }
 
 function FilterIcon() {
@@ -24,7 +27,30 @@ function FilterIcon() {
     );
 }
 
-function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, dateFrom, dateTo, onOpenDateFilter, amountMin, amountMax, onOpenAmountFilter, selectedIds, onToggle, onToggleAll }: TransactionProps) {
+function SortButton({ label, col, sortBy, sortDir, onSort }: {
+    label: string;
+    col: TransactionSortBy;
+    sortBy?: TransactionSortBy;
+    sortDir?: SortDir;
+    onSort?: (col: TransactionSortBy) => void;
+}) {
+    const isActive = sortBy === col;
+    const arrow = isActive ? (sortDir === 'asc' ? ' ▲' : ' ▼') : undefined;
+    return (
+        <button
+            className={`btn-th-sort${isActive ? ' btn-th-sort-active' : ''}`}
+            onClick={() => onSort?.(col)}
+            title={isActive
+                ? `Sorted by ${label} ${sortDir === 'asc' ? 'ascending' : 'descending'} — click to toggle`
+                : `Sort by ${label}`}
+        >
+            {label}
+            <span className="sort-arrow">{arrow ?? ' ↕'}</span>
+        </button>
+    );
+}
+
+function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, dateFrom, dateTo, onOpenDateFilter, amountMin, amountMax, onOpenAmountFilter, selectedIds, onToggle, onToggleAll, sortBy, sortDir, onSort }: TransactionProps) {
     const filterBtnRef = useRef<HTMLButtonElement>(null);
     const dateFilterBtnRef = useRef<HTMLButtonElement>(null);
     const amountFilterBtnRef = useRef<HTMLButtonElement>(null);
@@ -73,7 +99,7 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                     <th>Owner</th>
                     <th>
                         <div className="th-filter">
-                            Partner
+                            <SortButton label="Partner" col="partner" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
                             {onOpenPartnerFilter && (
                                 <button
                                     ref={filterBtnRef}
@@ -91,7 +117,7 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                     </th>
                     <th>
                         <div className="th-filter">
-                            Amount
+                            <SortButton label="Amount" col="amount" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
                             {onOpenAmountFilter && (
                                 <button
                                     ref={amountFilterBtnRef}
@@ -107,7 +133,7 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                     <th>Description</th>
                     <th>
                         <div className="th-filter">
-                            Date
+                            <SortButton label="Date" col="date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
                             {onOpenDateFilter && (
                                 <button
                                     ref={dateFilterBtnRef}
@@ -120,7 +146,11 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                             )}
                         </div>
                     </th>
-                    <th>Category</th>
+                    <th>
+                        <div className="th-filter">
+                            <SortButton label="Category" col="category" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody>

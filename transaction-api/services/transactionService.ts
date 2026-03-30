@@ -6,7 +6,9 @@ import {
     MonthlyTotalsQueryParams,
     TransactionPagedResult,
     TransactionDto,
-    TransactionQueryParams
+    TransactionQueryParams,
+    TransactionSortBy,
+    SortDir
 } from '../types/transaction';
 
 export const fetchTransactions: RequestHandler<
@@ -27,6 +29,20 @@ export const fetchTransactions: RequestHandler<
     const amount_min = req.query.amount_min !== undefined && req.query.amount_min !== '' ? parseFloat(req.query.amount_min) : null;
     const amount_max = req.query.amount_max !== undefined && req.query.amount_max !== '' ? parseFloat(req.query.amount_max) : null;
 
+    const sortBy: TransactionSortBy = (['partner', 'amount', 'date', 'category'].includes(req.query.sort_by as string)
+        ? req.query.sort_by
+        : 'date') as TransactionSortBy;
+    const sortDir: SortDir = req.query.sort_dir === 'asc' ? 'asc' : 'desc';
+
+    const dateFallback = { booking_date: 'desc' as const };
+    const idFallback   = { id: 'asc' as const };
+
+    const orderBy =
+        sortBy === 'partner'  ? [{ partner:  { name: sortDir } }, dateFallback, idFallback] :
+        sortBy === 'amount'   ? [{ amount: sortDir },           dateFallback, idFallback] :
+        sortBy === 'category' ? [{ category: { name: sortDir } }, dateFallback, idFallback] :
+        /* date */              [{ booking_date: sortDir },      idFallback];
+
     const where = {
         booking_date: { gte: date_from, lte: date_to },
         ...(partnerIds && partnerIds.length > 0 ? { partner_id: { in: partnerIds } } : {}),
@@ -43,7 +59,7 @@ export const fetchTransactions: RequestHandler<
             prisma.transactions.count({ where }),
             prisma.transactions.findMany({
                 where,
-                orderBy: { booking_date: 'desc' },
+                orderBy,
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {

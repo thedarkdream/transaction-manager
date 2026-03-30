@@ -221,13 +221,17 @@
   margin-top: 2px;
 }
 
-.tree-node-row {
+.tree-node-row,
+.gst-row {
   display: flex;
   align-items: center;
+  transition: background var(--t);
+}
+
+.tree-node-row {
   gap: 6px;
   padding: 5px 6px;
   border-radius: 5px;
-  transition: background var(--t);
 }
 
 .tree-node-row:hover {
@@ -242,9 +246,13 @@
   padding-right: 4px;
 }
 
+.tree-children,
+.picker-children {
+  border-left: 2px solid var(--clr-border);
+}
+
 .tree-children {
   margin-left: 20px;
-  border-left: 2px solid var(--clr-border);
   padding-left: 12px;
 }
 
@@ -304,7 +312,6 @@
 .btn-secondary { background: var(--clr-text-muted); color: #fff; }
 .btn-ghost     { background: var(--clr-border-medium); color: var(--clr-text-body); }
 .btn-icon      { background: #f3f4f6; color: var(--clr-text-body); padding: 3px 7px; font-size: 0.8rem; }
-.btn-assign    { font-size: 0.72rem; padding: 2px 8px; }
 
 /* ===== Categories cell in transaction table ===== */
 .category-tag {
@@ -385,7 +392,6 @@
 
 .picker-children {
   margin-left: 16px;
-  border-left: 2px solid var(--clr-border);
   padding-left: 10px;
 }
 /* ===== Pagination ===== */
@@ -490,9 +496,47 @@
   line-height: 1.5;
 }
 
+/* ===== Sort button in column header ===== */
+.btn-th-sort {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  opacity: 0.85;
+  transition: opacity var(--t);
+}
+
+.btn-th-sort:hover {
+  opacity: 1;
+}
+
+.btn-th-sort-active {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-underline-offset: 2px;
+}
+
+.sort-arrow {
+  font-size: 0.65rem;
+  opacity: 0.45;
+  margin-left: 2px;
+}
+
+.btn-th-sort-active .sort-arrow {
+  opacity: 0.9;
+}
+
 /* ===== Filter popups (partner / date / amount) ===== */
-.partner-filter-popup,
-.date-filter-popup {
+.filter-popup {
   background: #fff;
   border: 1px solid var(--clr-border);
   border-radius: 8px;
@@ -793,12 +837,16 @@
 }
 
 /* ===== Partners page ===== */
-.partners-toolbar {
+.partners-toolbar,
+.graph-toolbar {
   display: flex;
+  flex-wrap: wrap;
+}
+
+.partners-toolbar {
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
 }
 
 .partners-search {
@@ -931,11 +979,9 @@
 
 /* ===== Spending Graph page ===== */
 .graph-toolbar {
-  display: flex;
   align-items: flex-end;
   gap: 16px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
 .graph-toolbar-label {
@@ -971,13 +1017,10 @@
 }
 
 .gst-row {
-  display: flex;
-  align-items: center;
   gap: 7px;
   padding: 3px 6px 3px 0;
   border-radius: 4px;
   user-select: none;
-  transition: background var(--t);
 }
 
 .gst-row:hover { background: var(--clr-surface-subtle); }

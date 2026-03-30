@@ -48,7 +48,7 @@ function DateFilterPopup({ anchorRect, dateFrom, dateTo, onApply, onClose }: Dat
     return (
         <div
             ref={popupRef}
-            className="date-filter-popup"
+            className="filter-popup"
             style={{ position: 'fixed', left, top, width: POPUP_WIDTH }}
         >
             <div className="pfp-header">

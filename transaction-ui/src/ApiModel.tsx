@@ -85,6 +85,9 @@ export type AmountBoundsDto = {
     max: number;
 }
 
+export type TransactionSortBy = 'partner' | 'amount' | 'date' | 'category';
+export type SortDir = 'asc' | 'desc';
+
 export type CategoryDto = {
     id: number;
     name: string;

@@ -7,7 +7,7 @@ import DateFilterPopup from '../components/DateFilterPopup';
 import AmountFilterPopup from '../components/AmountFilterPopup';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import { Node } from '../components/Categories';
-import { TransactionPagedResult, PartnerPickerDto, TransactionDto, AmountBoundsDto } from '../ApiModel';
+import { TransactionPagedResult, PartnerPickerDto, TransactionDto, AmountBoundsDto, TransactionSortBy, SortDir } from '../ApiModel';
 import { API_BASE } from '../config';
 
 const PAGE_SIZE = 50;
@@ -45,6 +45,10 @@ function TransactionsPage() {
     const amountMin = searchParams.get('amountMin') ?? '';
     const amountMax = searchParams.get('amountMax') ?? '';
 
+    // Sort is stored in the URL as ?sortBy=date&sortDir=desc
+    const sortBy = (searchParams.get('sortBy') ?? 'date') as TransactionSortBy;
+    const sortDir = (searchParams.get('sortDir') ?? 'desc') as SortDir;
+
     useEffect(() => {
         fetch(`${API_BASE}/partners`)
             .then(r => r.json())
@@ -72,6 +76,8 @@ function TransactionsPage() {
         if (dateTo) params.set('date_to', dateTo);
         if (amountMin) params.set('amount_min', amountMin);
         if (amountMax) params.set('amount_max', amountMax);
+        params.set('sort_by', sortBy);
+        params.set('sort_dir', sortDir);
         fetch(`${API_BASE}/transactions?${params}`)
             .then(r => r.json())
             .then((result: TransactionPagedResult) => {
@@ -82,11 +88,23 @@ function TransactionsPage() {
                 setSelectedIds(new Set()); // clear selection on page/filter change
             })
             .catch(err => setErrorState(err.message));
-    }, [page, partnerIdsParam, dateFrom, dateTo, amountMin, amountMax]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [page, partnerIdsParam, dateFrom, dateTo, amountMin, amountMax, sortBy, sortDir]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePageChange(p: number): void {
         setPage(p);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleSort(col: TransactionSortBy): void {
+        const next = new URLSearchParams(searchParams);
+        if (sortBy === col) {
+            next.set('sortDir', sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            next.set('sortBy', col);
+            next.set('sortDir', col === 'date' ? 'desc' : 'asc');
+        }
+        setSearchParams(next, { replace: true });
+        setPage(1);
     }
 
     function handlePartnerFilterApply(ids: number[]): void {
@@ -239,6 +257,9 @@ function TransactionsPage() {
                         selectedIds={selectedIds}
                         onToggle={toggleRow}
                         onToggleAll={toggleAll}
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                        onSort={handleSort}
                     />
                     <Pagination
                         page={page}

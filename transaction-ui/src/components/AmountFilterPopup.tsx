@@ -82,7 +82,7 @@ function AmountFilterPopup({ anchorRect, amountMin, amountMax, boundsMin, bounds
     return (
         <div
             ref={popupRef}
-            className="date-filter-popup"
+            className="filter-popup"
             style={{ position: 'fixed', left, top, width: POPUP_WIDTH }}
         >
             <div className="pfp-header">

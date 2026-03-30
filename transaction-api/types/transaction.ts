@@ -1,3 +1,6 @@
+export type TransactionSortBy = 'partner' | 'amount' | 'date' | 'category';
+export type SortDir = 'asc' | 'desc';
+
 export interface TransactionQueryParams {
     date_from?: string;
     date_to?: string;
@@ -6,6 +9,8 @@ export interface TransactionQueryParams {
     page?: string;
     pageSize?: string;
     partnerIds?: string;  // comma-separated partner IDs
+    sort_by?: TransactionSortBy;
+    sort_dir?: SortDir;
 }
 
 export interface MonthlyTotalsQueryParams {

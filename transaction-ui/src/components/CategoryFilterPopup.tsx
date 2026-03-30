@@ -65,7 +65,7 @@ function CategoryFilterPopup({ anchorRect, categories, selected, onApply, onClos
     return (
         <div
             ref={popupRef}
-            className="partner-filter-popup"
+            className="filter-popup"
             style={{ position: 'fixed', left, top, width: POPUP_WIDTH }}
         >
             <div className="pfp-header">

@@ -7,7 +7,7 @@ import DateFilterPopup from '../components/DateFilterPopup';
 import AmountFilterPopup from '../components/AmountFilterPopup';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import { Node } from '../components/Categories';
-import { PagedResult, PartnerPickerDto, TransactionDto } from '../ApiModel';
+import { TransactionPagedResult, PartnerPickerDto, TransactionDto, AmountBoundsDto } from '../ApiModel';
 import { API_BASE } from '../config';
 
 const PAGE_SIZE = 50;
@@ -18,10 +18,13 @@ function TransactionsPage() {
 
     const [transactions, setTransactions] = useState<TransactionDto[]>();
     const [total, setTotal] = useState(0);
+    const [totalSpent, setTotalSpent] = useState(0);
+    const [totalIncoming, setTotalIncoming] = useState(0);
     const [page, setPage] = useState(1);
     const [errorState, setErrorState] = useState<string>();
     const [partners, setPartners] = useState<PartnerPickerDto[]>([]);
     const [categories, setCategories] = useState<Node[]>([]);
+    const [amountBounds, setAmountBounds] = useState<AmountBoundsDto>({ min: -10000, max: 10000 });
     const [partnerFilterAnchor, setPartnerFilterAnchor] = useState<DOMRect | null>(null);
     const [dateFilterAnchor, setDateFilterAnchor] = useState<DOMRect | null>(null);
     const [amountFilterAnchor, setAmountFilterAnchor] = useState<DOMRect | null>(null);
@@ -51,6 +54,10 @@ function TransactionsPage() {
             .then(r => r.json())
             .then((data: Node[]) => setCategories(data))
             .catch(err => console.error('Failed to load categories', err));
+        fetch(`${API_BASE}/transactions/amount-bounds`)
+            .then(r => r.json())
+            .then((data: AmountBoundsDto) => setAmountBounds(data))
+            .catch(err => console.error('Failed to load amount bounds', err));
     }, []);
 
     const partnerIdsParam = searchParams.get('partnerIds') ?? '';
@@ -67,9 +74,11 @@ function TransactionsPage() {
         if (amountMax) params.set('amount_max', amountMax);
         fetch(`${API_BASE}/transactions?${params}`)
             .then(r => r.json())
-            .then((result: PagedResult<TransactionDto>) => {
+            .then((result: TransactionPagedResult) => {
                 setTransactions(result.data);
                 setTotal(result.total);
+                setTotalSpent(result.totalSpent);
+                setTotalIncoming(result.totalIncoming);
                 setSelectedIds(new Set()); // clear selection on page/filter change
             })
             .catch(err => setErrorState(err.message));
@@ -203,6 +212,20 @@ function TransactionsPage() {
             {errorState && <div className="error-msg">{errorState}</div>}
             {!errorState && (
                 <>
+                    <div className="tx-summary">
+                        <div className="tx-summary-item tx-summary-incoming">
+                            <span className="tx-summary-label">Incoming</span>
+                            <span className="tx-summary-value">+{totalIncoming.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="tx-summary-item tx-summary-spent">
+                            <span className="tx-summary-label">Spent</span>
+                            <span className="tx-summary-value">{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="tx-summary-item tx-summary-net">
+                            <span className="tx-summary-label">Net</span>
+                            <span className="tx-summary-value">{(totalIncoming + totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
                     <Transactions
                         entries={transactions}
                         selectedPartnerIds={selectedPartnerIds}
@@ -248,6 +271,8 @@ function TransactionsPage() {
                     anchorRect={amountFilterAnchor}
                     amountMin={amountMin}
                     amountMax={amountMax}
+                    boundsMin={amountBounds.min}
+                    boundsMax={amountBounds.max}
                     onApply={handleAmountFilterApply}
                     onClose={() => setAmountFilterAnchor(null)}
                 />

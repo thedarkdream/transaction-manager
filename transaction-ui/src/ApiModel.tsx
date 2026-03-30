@@ -69,10 +69,20 @@ export type PagedResult<T> = {
     pageSize: number;
 }
 
+export type TransactionPagedResult = PagedResult<TransactionDto> & {
+    totalSpent: number;
+    totalIncoming: number;
+}
+
 export type MonthlyTotalDto = {
     month: string;          // 'YYYY-MM'
     categoryId: number | null;
     total: number;
+}
+
+export type AmountBoundsDto = {
+    min: number;
+    max: number;
 }
 
 export type CategoryDto = {

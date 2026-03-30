@@ -49,7 +49,7 @@ function buildTree(nodes: categories[]): CategoryNode[] {
 
 // ── GET /categories ───────────────────────────────────────────────────────────
 
-const fetchCategories: RequestHandler<{}, CategoryNode[]> = async (req, res) => {
+export const fetchCategories: RequestHandler<{}, CategoryNode[]> = async (req, res) => {
     try {
         const rows = await prisma.categories.findMany();
         res.send(buildTree(rows));
@@ -60,7 +60,7 @@ const fetchCategories: RequestHandler<{}, CategoryNode[]> = async (req, res) => 
 
 // ── POST /categories ──────────────────────────────────────────────────────────
 
-const addCategory: RequestHandler<{}, CategoryDto, AddCategoryInput> = async (req, res) => {
+export const addCategory: RequestHandler<{}, CategoryDto, AddCategoryInput> = async (req, res) => {
     try {
         const { name, parent, index } = req.body;
 
@@ -103,7 +103,7 @@ export const updateCategory: RequestHandler<{ id: string }, CategoryDto, UpdateC
 
 // ── POST /categories/move ─────────────────────────────────────────────────────
 
-const moveCategory: RequestHandler<{}, string, MoveCategoryInput> = async (req, res) => {
+export const moveCategory: RequestHandler<{}, string, MoveCategoryInput> = async (req, res) => {
     const { id, delta } = req.body;
     try {
         const node = await prisma.categories.findUnique({ where: { id } });
@@ -132,7 +132,7 @@ const moveCategory: RequestHandler<{}, string, MoveCategoryInput> = async (req, 
 
 // ── DELETE /categories/:id ────────────────────────────────────────────────────
 
-const deleteCategory: RequestHandler<{ id: string }, string> = async (req, res) => {
+export const deleteCategory: RequestHandler<{ id: string }, string> = async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) { res.status(400).send('invalid category id'); return; }
     try {
@@ -143,4 +143,4 @@ const deleteCategory: RequestHandler<{ id: string }, string> = async (req, res) 
     }
 };
 
-export { fetchCategories, addCategory, moveCategory, deleteCategory };
+

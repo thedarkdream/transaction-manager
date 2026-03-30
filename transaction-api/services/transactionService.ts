@@ -4,16 +4,16 @@ import {
     AssignTransactionCategoryBody,
     MonthlyTotalDto,
     MonthlyTotalsQueryParams,
-    PagedResult,
+    TransactionPagedResult,
     TransactionDto,
     TransactionQueryParams
 } from '../types/transaction';
 
-const fetchTransactions: RequestHandler<
-    {},                          // Params
-    PagedResult<TransactionDto>, // ResBody
-    {},                          // ReqBody
-    TransactionQueryParams       // ReqQuery
+export const fetchTransactions: RequestHandler<
+    {},                           // Params
+    TransactionPagedResult,        // ResBody
+    {},                           // ReqBody
+    TransactionQueryParams        // ReqQuery
 > = async (req, res) => {
     const date_from = new Date(req.query.date_from || '1970-01-01');
     const date_to = new Date(req.query.date_to || new Date().toISOString());
@@ -39,7 +39,7 @@ const fetchTransactions: RequestHandler<
     };
 
     try {
-        const [total, transactions] = await Promise.all([
+        const [total, transactions, spentAgg, incomingAgg] = await Promise.all([
             prisma.transactions.count({ where }),
             prisma.transactions.findMany({
                 where,
@@ -51,8 +51,13 @@ const fetchTransactions: RequestHandler<
                     partner: true,
                     category: { select: { id: true, name: true, color: true } }
                 }
-            })
+            }),
+            prisma.transactions.aggregate({ where: { ...where, amount: { lt: 0 } }, _sum: { amount: true } }),
+            prisma.transactions.aggregate({ where: { ...where, amount: { gt: 0 } }, _sum: { amount: true } }),
         ]);
+
+        const totalSpent = parseFloat(spentAgg._sum.amount?.toString() ?? '0');
+        const totalIncoming = parseFloat(incomingAgg._sum.amount?.toString() ?? '0');
 
         const data = transactions.map(t => ({
             id: t.id,
@@ -67,7 +72,7 @@ const fetchTransactions: RequestHandler<
             validation_date: t.validation_date
         }));
 
-        res.send({ data, total, page, pageSize });
+        res.send({ data, total, page, pageSize, totalSpent, totalIncoming });
     } catch (err: unknown) {
         const error = err as Error;
         console.error('Error executing query', error);
@@ -120,7 +125,21 @@ export const backfillTransactionCategories: RequestHandler<{}, { updated: number
     }
 };
 
-export default fetchTransactions;
+// GET /transactions/amount-bounds
+// Returns the global min and max transaction amounts (for the range slider).
+export const fetchAmountBounds: RequestHandler<{}, { min: number; max: number }> = async (_req, res) => {
+    try {
+        const agg = await prisma.transactions.aggregate({
+            _min: { amount: true },
+            _max: { amount: true },
+        });
+        const min = parseFloat(agg._min.amount?.toString() ?? '0');
+        const max = parseFloat(agg._max.amount?.toString() ?? '0');
+        res.send({ min, max });
+    } catch (err: unknown) {
+        res.status(500).send((err as Error).message as any);
+    }
+};
 
 // GET /transactions/monthly-totals
 // Returns outgoing (negative) transactions aggregated by month + category_id.

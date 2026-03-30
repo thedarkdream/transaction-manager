@@ -26,6 +26,11 @@ export interface PagedResult<T> {
     pageSize: number;
 }
 
+export interface TransactionPagedResult extends PagedResult<TransactionDto> {
+    totalSpent: number;
+    totalIncoming: number;
+}
+
 export interface CategorySummaryDto {
     id: number;
     name: string | null;

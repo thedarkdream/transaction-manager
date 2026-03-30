@@ -1,34 +1,9 @@
 import { RequestHandler } from 'express';
 import { prisma } from '../db';
-
-// Minimal DTO used by the transaction filter popup
-export interface PartnerPickerDto {
-    id: number;
-    name: string | null;
-    iban: string | null;
-}
-
-// Full DTO used by the Partners management page
-export interface PartnerDetailDto {
-    id: number;
-    name: string | null;
-    iban: string | null;
-    bic: string | null;
-    number: string | null;
-    bank_code: string | null;
-    country_code: string | null;
-    address: string | null;
-    originator: string | null;
-    category: { id: number; name: string | null } | null;
-}
-
-interface AssignCategoryBody {
-    partnerIds: number[];
-    categoryId: number | null;
-}
+import { PartnerPickerDto, PartnerDetailDto, AssignPartnerCategoryBody } from '../types/partner';
 
 // GET /partners — lightweight list for filter picker
-const fetchPartners: RequestHandler<{}, PartnerPickerDto[]> = async (req, res) => {
+export const fetchPartners: RequestHandler<{}, PartnerPickerDto[]> = async (req, res) => {
     try {
         const partners = await prisma.partners.findMany({
             select: { id: true, name: true, iban: true },
@@ -65,7 +40,7 @@ export const fetchAllPartners: RequestHandler<{}, PartnerDetailDto[]> = async (r
 };
 
 // POST /partners/assign-category
-export const assignCategory: RequestHandler<{}, { updated: number }, AssignCategoryBody> = async (req, res) => {
+export const assignCategory: RequestHandler<{}, { updated: number }, AssignPartnerCategoryBody> = async (req, res) => {
     const { partnerIds, categoryId } = req.body;
     if (!Array.isArray(partnerIds) || partnerIds.length === 0) {
         res.status(400).send('partnerIds must be a non-empty array' as any);
@@ -99,5 +74,5 @@ export const assignCategory: RequestHandler<{}, { updated: number }, AssignCateg
     }
 };
 
-export default fetchPartners;
+
 

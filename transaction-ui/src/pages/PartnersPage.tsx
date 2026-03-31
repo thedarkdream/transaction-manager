@@ -1,22 +1,42 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import CategoryPickerModal from '../components/CategoryPickerModal';
 import CategoryFilterPopup, { CategoryFilterId } from '../components/CategoryFilterPopup';
 import { Node } from '../components/Categories';
 import { PartnerDetailDto } from '../ApiModel';
 import { API_BASE } from '../config';
 
+// ── URL param helpers ─────────────────────────────────────────────────────────
+
+function parseCatIds(raw: string | null): CategoryFilterId[] {
+    if (!raw) return [];
+    return raw.split(',').map(s => (s === 'null' ? null : parseInt(s, 10)));
+}
+
+function serialiseCatIds(ids: CategoryFilterId[]): string {
+    return ids.map(id => (id === null ? 'null' : String(id))).join(',');
+}
+
+const SCROLL_KEY = 'partners_scroll';
+
 function PartnersPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Filter state lives in the URL so browser Back restores it automatically
+    const search = searchParams.get('q') ?? '';
+    const filterCatIds: CategoryFilterId[] = parseCatIds(searchParams.get('catIds'));
+
     const [partners, setPartners] = useState<PartnerDetailDto[]>([]);
     const [categories, setCategories] = useState<Node[]>([]);
     const [loading, setLoading] = useState(true);
     const [errorState, setErrorState] = useState<string>();
-    const [search, setSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-    const [filterCatIds, setFilterCatIds] = useState<CategoryFilterId[]>([]);
     const [catFilterAnchor, setCatFilterAnchor] = useState<DOMRect | null>(null);
+
+    // Track whether we have already restored the scroll position for this visit
+    const scrollRestored = useRef(false);
 
     useEffect(() => {
         Promise.all([
@@ -30,6 +50,33 @@ function PartnersPage() {
             .catch(err => setErrorState(err.message))
             .finally(() => setLoading(false));
     }, []);
+
+    // Restore scroll after data has loaded (only once per visit)
+    useEffect(() => {
+        if (loading || scrollRestored.current) return;
+        scrollRestored.current = true;
+        const saved = sessionStorage.getItem(SCROLL_KEY);
+        if (saved !== null) {
+            const y = parseInt(saved, 10);
+            // Use rAF to wait for the DOM to settle before scrolling
+            requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior }));
+            sessionStorage.removeItem(SCROLL_KEY);
+        }
+    }, [loading]);
+
+    // ── Helpers to update URL params ────────────────────────────────────────
+
+    function setSearch(value: string) {
+        const next = new URLSearchParams(searchParams);
+        if (value) next.set('q', value); else next.delete('q');
+        setSearchParams(next, { replace: true });
+    }
+
+    function setFilterCatIds(ids: CategoryFilterId[]) {
+        const next = new URLSearchParams(searchParams);
+        if (ids.length > 0) next.set('catIds', serialiseCatIds(ids)); else next.delete('catIds');
+        setSearchParams(next, { replace: true });
+    }
 
     const filtered = useMemo(() => {
         let result = partners;
@@ -75,6 +122,12 @@ function PartnersPage() {
             if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
+    }
+
+    function handlePartnerClick(partnerId: number) {
+        // Save scroll position before leaving so we can restore it on Back
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        navigate(`/transactions?partnerIds=${partnerId}`);
     }
 
     // --- Category assignment ---
@@ -202,7 +255,7 @@ function PartnersPage() {
                                 </td>
                                 <td
                                     className="partner-name-link"
-                                    onClick={e => { e.stopPropagation(); navigate(`/transactions?partnerIds=${p.id}`); }}
+                                    onClick={e => { e.stopPropagation(); handlePartnerClick(p.id); }}
                                     title="View transactions for this partner"
                                 >
                                     {p.name ?? '—'}

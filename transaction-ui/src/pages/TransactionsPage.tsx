@@ -198,6 +198,20 @@ function TransactionsPage() {
             <h2>Transactions</h2>
 
             <div className="partners-toolbar">
+                <div className="tx-summary">
+                    <div className="tx-summary-item tx-summary-incoming">
+                        <span className="tx-summary-label">Incoming</span>
+                        <span className="tx-summary-value">+{totalIncoming.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="tx-summary-item tx-summary-spent">
+                        <span className="tx-summary-label">Spent</span>
+                        <span className="tx-summary-value">{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="tx-summary-item tx-summary-net">
+                        <span className="tx-summary-label">Net</span>
+                        <span className="tx-summary-value">{(totalIncoming + totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                </div>
                 <div className="partners-actions">
                     {selectionCount > 0 && (
                         <span className="partners-selection-label">{selectionCount} selected</span>
@@ -230,20 +244,6 @@ function TransactionsPage() {
             {errorState && <div className="error-msg">{errorState}</div>}
             {!errorState && (
                 <>
-                    <div className="tx-summary">
-                        <div className="tx-summary-item tx-summary-incoming">
-                            <span className="tx-summary-label">Incoming</span>
-                            <span className="tx-summary-value">+{totalIncoming.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="tx-summary-item tx-summary-spent">
-                            <span className="tx-summary-label">Spent</span>
-                            <span className="tx-summary-value">{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="tx-summary-item tx-summary-net">
-                            <span className="tx-summary-label">Net</span>
-                            <span className="tx-summary-value">{(totalIncoming + totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                    </div>
                     <Transactions
                         entries={transactions}
                         selectedPartnerIds={selectedPartnerIds}

@@ -1,5 +1,9 @@
 {
     "folders": [
+		{
+            "name": "features",
+            "path": "features"
+        },
         {
             "name": "transaction-api",
             "path": "transaction-api"

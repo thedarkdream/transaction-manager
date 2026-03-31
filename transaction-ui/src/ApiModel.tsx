@@ -41,6 +41,8 @@ export type TransactionDto = {
 export type ImportResultDto = {
     imported: number;
     skipped: number;
+    /** Filename of the server-side skip report, present only when rows were skipped (Revolut import). */
+    reportFile: string | null;
 }
 
 export type PartnerPickerDto = {

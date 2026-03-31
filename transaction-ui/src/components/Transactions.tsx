@@ -176,7 +176,7 @@ function Transactions({ entries, selectedPartnerIds = [], onOpenPartnerFilter, d
                             <td>{entry.partner?.name ?? entry.partner?.iban ?? '—'}</td>
                             <td className="col-amount">{entry.amount} {entry.currency}</td>
                             <td className="col-description">{entry.description}</td>
-                            <td className="col-date">{entry.booking_date ? new Date(entry.booking_date).toLocaleDateString() : '—'}</td>
+                            <td className="col-date">{entry.booking_date ? new Date(entry.booking_date).toLocaleDateString('ro-RO') : '—'}</td>
                             <td>
                                 {entry.category
                                     ? <span
